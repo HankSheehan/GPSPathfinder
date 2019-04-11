@@ -7,16 +7,19 @@ import re
 import pynmea2
 import simplekml
 from haversine import haversine
+from tqdm import tqdm
 
 
 LINESTYLE_COLOR = 'Af00ffff'
 LINESTYLE_WIDTH = 6
 POLYSTYLE_COLOR = '7f00ff00'
 
-VALID_GPS_LINE_REGEX = '^\$(GPRMC,\d+\.\d+,A|GPGGA,\d+\.\d+),\d+.\d+,N,\d+.\d+,W,\d+.\d+,\d+.\d+,(\d+|\d+.\d+)(,[^,\n]*){3,5}$'
+VALID_GPS_LINE_REGEX = '^\$GPRMC,\d+\.\d+,A,\d+.\d+,N,\d+.\d+,W,\d+.\d+,\d+.\d+,\d+(,[^,\n]*){3}$'
 
 KNOT_TO_MPH = 1.15078 # 1 knot = this many mph
-DISTANCE_THRESHOLD = 3000 # miles
+ACCELERATION_THRESHOLD = 2 # mph
+DECELERATION_THRESHOLD = 8 # mph
+
 
 
 def write_kml_file(positions, kml_file_path):
@@ -52,8 +55,6 @@ def load_gps_file(gps_file_path):
                 except:
                     continue
 
-        print(get_distance(positions[0], positions[1]))
-
     return positions
 
 
@@ -61,14 +62,52 @@ def sanitize_data(positions):
     """
     Cleans bad data points
     """
+
+    print(f'{len(positions)} positions before sanitization')
+
+    i = 0 
+    while i < len(positions):
+        current_position = positions[i]
+        last_position = positions[i-1]
+
+        if not acceleration_is_valid(current_position, last_position):
+            positions.pop(i)
+
+        i += 1
+
+
+
+    print(f'{len(positions)} positions after sanitization')
     return positions
+
+
+def acceleration_is_valid(current_position, last_position):
+    current_speed = get_speed(current_position)
+    last_speed = get_speed(last_position)
+    speed_difference = abs(current_speed - last_speed)
+    # Accelerating
+    if current_speed > last_speed:
+        return speed_difference < ACCELERATION_THRESHOLD
+    # Decelerating
+    else:
+        return speed_difference < DECELERATION_THRESHOLD
+
+
+def position_within_projection(current_position, last_position):
+    last_speed = get_speed(last_position)
+    return
+
+
 
 
 def get_speed(position):
     """
     Returns the speed at this position in miles per hour.
     """
-    return position.spd_over_grnd * KNOT_TO_MPH
+    if isinstance(position, pynmea2.types.talker.RMC):
+        return position.spd_over_grnd * KNOT_TO_MPH
+
+    return None
 
 
 def get_coordinate_tuple(position, lat_first=False):
