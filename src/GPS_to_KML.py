@@ -9,6 +9,8 @@ LINESTYLE_COLOR = 'Af00ffff'
 LINESTYLE_WIDTH = 6
 POLYSTYLE_COLOR = '7f00ff00'
 
+KNOT_TO_MPH = 1.15078 # 1 knot = this many mph
+
 
 def write_kml(path_coordinates):
     # Write data to a KML object
@@ -38,6 +40,13 @@ def gps_to_kml(gps_file_path):
                 continue
 
     return write_kml(positions)
+
+
+def get_speed(position):
+    """
+    Returns the speed at this position in miles per hour
+    """
+    return position.spd_over_grnd * KNOT_TO_MPH
 
 
 def main():
