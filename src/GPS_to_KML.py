@@ -1,8 +1,22 @@
 import argparse
+import pynmea2
 import simplekml
+from pprint import pprint
+import re
 
 
 def gps_to_kml(gps_file_path):
+    with open(gps_file_path, 'r') as file:
+        lines = []
+        for line in file:
+            if re.match('\$GPRMC.*', line):
+                try:
+                    lines.append(pynmea2.parse(line, check=False))
+                except:
+                    continue
+
+        pprint(lines)
+
     return ''
 
 

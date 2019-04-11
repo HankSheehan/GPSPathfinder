@@ -1,26 +1,23 @@
-from pykml import parser
-import os
+# import os
+# import simplekml
 
-DATA_FILES_DIR = 'data'
-KML_FILES_DIR = 'kml'
+# DATA_FILES_DIR = 'data'
 
-def main():
-	data_files = load_files(DATA_FILES_DIR)
-	kml_files = load_files(KML_FILES_DIR)
+# def main():
+#     data_files = load_files(DATA_FILES_DIR)
 
-def load_files(dir):
-	for file in os.listdir(os.fsencode(dir)):
-	     filename = os.fsdecode(file)
-	     if filename.endswith(".txt"):
-	     	return load_gps_txt(file)
-	     elif filename.endswith(".kml"):
-	     	return load_gps_kml(file)
+# def load_files(file_dir):
+#     _, _, files = next(os.walk(file_dir))
+#     files = list(filter(lambda file: file.lower().endswith('.txt'), files))
+#     files = [os.path.join(file_dir, file) for file in files]
 
-def load_gps_kml():
-	return
+#     return files
 
-def load_gps_txt():
-	return
+#     # return gps_files
 
-main()
-	
+# def load_gps_data(file):
+#     with open(file, 'r') as file:
+#         return [ line for line in file ]
+
+# main()
+#     
