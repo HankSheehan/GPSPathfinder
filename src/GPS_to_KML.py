@@ -5,6 +5,28 @@ from pprint import pprint
 import re
 
 
+LINESTYLE_COLOR = 'Af00ffff'
+LINESTYLE_WIDTH = 6
+POLYSTYLE_COLOR = '7f00ff00'
+
+
+def write_kml(path_coordinates):
+    # Write data to a KML object
+    kml = simplekml.Kml()
+
+    path = kml.newlinestring(
+        name="Example",
+        description="Path for 2019_03_19",
+        coords=[(path_coordinate.longitude, path_coordinate.latitude) for path_coordinate in path_coordinates]
+    )
+
+    path.style.linestyle.color = LINESTYLE_COLOR
+    path.style.linestyle.width = LINESTYLE_WIDTH
+    path.style.polystyle.color = POLYSTYLE_COLOR
+
+    return kml.kml()
+
+
 def gps_to_kml(gps_file_path):
     # Read in and parse the GPS file
     with open(gps_file_path, 'r') as file:
@@ -15,20 +37,7 @@ def gps_to_kml(gps_file_path):
             except:
                 continue
 
-    # Write data to a KML object
-    kml = simplekml.Kml()
-
-    path = kml.newlinestring(
-        name="Example",
-        description="Path for 2019_03_19",
-        coords=[(position.longitude, position.latitude) for position in positions]
-    )
-
-    path.style.linestyle.color = 'Af00ffff'
-    path.style.linestyle.width = 6
-    path.style.polystyle.color('7f00ff00'
-
-    return kml.kml()
+    return write_kml(positions)
 
 
 def main():
