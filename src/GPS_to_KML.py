@@ -5,11 +5,14 @@ from pprint import pprint
 import re
 
 
+FILTER_GPGGA = '\$GPGGA.*'
+FILTER_GPRMC = '\$GPRMC.*'
+
 def gps_to_kml(gps_file_path):
     with open(gps_file_path, 'r') as file:
         lines = []
         for line in file:
-            if re.match('\$GPRMC.*', line):
+            if re.match(f'{FILTER_GPRMC}|{FILTER_GPGGA}', line):
                 try:
                     lines.append(pynmea2.parse(line, check=False))
                 except:
