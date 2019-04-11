@@ -8,18 +8,25 @@ import re
 def gps_to_kml(gps_file_path):
     # Read in and parse the GPS file
     with open(gps_file_path, 'r') as file:
-        lines = []
-        for line in file:
+        positions = []
+        for position in file:
             try:
-                lines.append(pynmea2.parse(line, check=False))
+                positions.append(pynmea2.parse(position, check=False))
             except:
                 continue
 
     # Write data to a KML object
     kml = simplekml.Kml()
-    coords=[(line.longitude, line.latitude) for line in lines]
-    kml.newlinestring(name="Example", description="Path for 2019_03_19", coords=coords)
 
+    path = kml.newlinestring(
+        name="Example",
+        description="Path for 2019_03_19",
+        coords=[(position.longitude, position.latitude) for position in positions]
+    )
+
+    path.style.linestyle.color = 'Af00ffff'
+    path.style.linestyle.width = 6
+    path.style.polystyle.color('7f00ff00'
 
     return kml.kml()
 
