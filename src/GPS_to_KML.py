@@ -5,22 +5,23 @@ from pprint import pprint
 import re
 
 
-FILTER_GPGGA = '\$GPGGA.*'
-FILTER_GPRMC = '\$GPRMC.*'
-
 def gps_to_kml(gps_file_path):
+    # Read in and parse the GPS file
     with open(gps_file_path, 'r') as file:
         lines = []
         for line in file:
-            if re.match(f'{FILTER_GPRMC}|{FILTER_GPGGA}', line):
-                try:
-                    lines.append(pynmea2.parse(line, check=False))
-                except:
-                    continue
+            try:
+                lines.append(pynmea2.parse(line, check=False))
+            except:
+                continue
 
-        pprint(lines)
+    # Write data to a KML object
+    kml = simplekml.Kml()
+    coords=[(line.longitude, line.latitude) for line in lines]
+    kml.newlinestring(name="Example", description="Path for 2019_03_19", coords=coords)
 
-    return ''
+
+    return kml.kml()
 
 
 def main():
