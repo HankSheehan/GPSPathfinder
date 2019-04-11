@@ -1,13 +1,19 @@
+# Python Standard Libraries
 import argparse
+from pprint import pprint
+import re
+
+# Third Party Libraries
 import pynmea2
 import simplekml
 from haversine import haversine
-from pprint import pprint
 
 
 LINESTYLE_COLOR = 'Af00ffff'
 LINESTYLE_WIDTH = 6
 POLYSTYLE_COLOR = '7f00ff00'
+
+VALID_GPS_LINE_REGEX = '^\$(GPRMC,\d+\.\d+,A|GPGGA,\d+\.\d+),\d+.\d+,N,\d+.\d+,W,\d+.\d+,\d+.\d+,(\d+|\d+.\d+)(,[^,\n]*){3,5}$'
 
 KNOT_TO_MPH = 1.15078 # 1 knot = this many mph
 DISTANCE_THRESHOLD = 3000 # miles
@@ -40,10 +46,11 @@ def load_gps_file(gps_file_path):
     with open(gps_file_path, 'r') as file:
         positions = []
         for position in file:
-            try:
-                positions.append(pynmea2.parse(position, check=False))
-            except:
-                continue
+            if re.match(VALID_GPS_LINE_REGEX, position):
+                try:
+                    positions.append(pynmea2.parse(position, check=False))
+                except:
+                    continue
 
         print(get_distance(positions[0], positions[1]))
 
