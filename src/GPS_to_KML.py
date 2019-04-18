@@ -17,7 +17,7 @@ VALID_GPS_LINE_REGEX = '^\$GPRMC,\d+\.\d+,A,\d+.\d+,N,\d+.\d+,W,\d+.\d+,\d+.\d+,
 KNOT_TO_MPH = 1.15078 # 1 knot = this many mph
 ACCELERATION_THRESHOLD = 15 # mph
 DECELERATION_THRESHOLD = 15 # mph
-PROJECTED_DISTANCE_THRESHOLD = 20 # miles
+PROJECTED_DISTANCE_THRESHOLD = 1 # mph
 
 
 
@@ -78,15 +78,13 @@ def sanitize_data(positions):
         current_position = positions[index]
         last_position = positions[index-1]
 
-        # if not acceleration_is_valid(current_position, last_position):
-        #     bad_points.append(current_position)
-        #     positions.pop(index)
-        if not position_within_projection(current_position, last_position):
+        if not acceleration_is_valid(current_position, last_position):
             bad_points.append(current_position)
             positions.pop(index)
         else:
             index += 1
 
+        print_some_info(current_position, last_position)
 
 
     print(f'{len(positions)} positions after sanitization')
@@ -105,16 +103,11 @@ def acceleration_is_valid(current_position, last_position):
         return speed_difference_per_second < DECELERATION_THRESHOLD
 
 
-def position_within_projection(current_position, last_position):
+def print_some_info(current_position, last_position):
     last_speed = get_speed(last_position)
-    hours_since_last_position = (current_position.datetime - last_position.datetime).total_seconds() / 3600
     distance_from_last_position = get_distance(current_position, last_position)
-    projected_distance = last_speed * hours_since_last_position
-    print(f'projected distance: {projected_distance}')
-    print(f'hours since last: {hours_since_last_position}')
     print(f'last speed: {last_speed}')
     print(f'distanace from last: {distance_from_last_position}\n')
-    return distance_from_last_position < projected_distance + PROJECTED_DISTANCE_THRESHOLD
 
 
 def get_speed(position):
