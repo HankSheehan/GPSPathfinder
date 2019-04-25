@@ -71,9 +71,9 @@ def sanitize_data(positions):
     index = 1
     while index < len(positions):
         current_position = positions[index]
-        last_position = positions[index-1]
+        last_position = positions[index - 1]
 
-        if not acceleration_is_valid(current_position, last_position):
+        if not sequential_position_pair_is_valid(current_position, last_position):
             positions.pop(index)
         else:
             index += 1
@@ -101,11 +101,31 @@ def clean_trip_end(positions):
     while get_speed(positions[index]) < 1:
         positions.pop(index)
         index -= 1
-
     return positions
 
 
+def sequential_position_pair_is_valid(current_position, last_position):
+    """
+    Validates that two sequential positions are valid based on different
+    constraints like timestasmps and acceleration
+    """
+    return (timestamp_is_valid(current_position, last_position)
+        and acceleration_is_valid(current_position, last_position))
+
+
+def timestamp_is_valid(current_position, last_position):
+    """
+    Returns True if the current position's timestamp comes after the previous
+    position's timestamp
+    """
+    return current_position.timestamp > last_position.timestamp
+
+
 def acceleration_is_valid(current_position, last_position):
+    """
+    Returns True if the current position's velocity has increased/decreased
+    within a reasonable acceleration threshold
+    """
     current_speed = get_speed(current_position)
     last_speed = get_speed(last_position)
     speed_difference_per_second = abs(current_speed - last_speed)/(current_position.datetime - last_position.datetime).total_seconds()
