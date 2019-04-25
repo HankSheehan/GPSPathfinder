@@ -7,9 +7,9 @@ import GPS_to_KML as gps_utils
 # Third Party Libraries
 import pynmea2
 
-STOP_MERGE_THRESHOLD = .5 # miles
+STOP_MERGE_THRESHOLD = .05 # miles
 TURN_MERGE_THRESHOLD = .01 # miles
-TURN_BEARING_DIFFERENCE_THRESHOLD = 15 # degrees
+TURN_BEARING_DIFFERENCE_THRESHOLD = 20 # degrees
 MARKER_MAX_SECONDS = 300 # seconds
 
 
@@ -110,7 +110,6 @@ def detect_turn(positions):
         final_bearing = gps_utils.get_bearing(slow_down[-2], slow_down[-1])
         bearing_difference = gps_utils.get_bearing_difference(initial_bearing, final_bearing)
 
-        # TODO: handle U-turns (they sometimes freeak out)
         if abs(bearing_difference) > TURN_BEARING_DIFFERENCE_THRESHOLD:
             if abs(abs(bearing_difference)-180) < TURN_BEARING_DIFFERENCE_THRESHOLD:
                 u_turns.append(get_metoid(slow_down))
@@ -118,7 +117,6 @@ def detect_turn(positions):
                 left_turns.append(get_metoid(slow_down))
             else:
                 right_turns.append(get_metoid(slow_down))
-
     return left_turns, right_turns, u_turns
 
 
