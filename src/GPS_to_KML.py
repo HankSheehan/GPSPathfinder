@@ -37,18 +37,20 @@ def write_kml_file( kml_file_path,
     """
     kml = simplekml.Kml()
 
-    # Add a line for the path taken
-    path = kml.newlinestring(
-        name="Path",
-        description="Path",
-        altitudemode="relativeToGround",
-        extrude=1,
-        coords=[get_coordinate_and_speed_tuple(position) for position in positions]
-    )
+    if positions:
 
-    path.style.linestyle.color = PATH_LINESTYLE_COLOR
-    path.style.linestyle.width = PATH_LINESTYLE_WIDTH
-    path.style.polystyle.color = PATH_POLYSTYLE_COLOR
+        # Add a line for the path taken
+        path = kml.newlinestring(
+            name="Path",
+            description="Path",
+            altitudemode="relativeToGround",
+            extrude=1,
+            coords=[get_coordinate_and_speed_tuple(position) for position in positions]
+        )
+
+        path.style.linestyle.color = PATH_LINESTYLE_COLOR
+        path.style.linestyle.width = PATH_LINESTYLE_WIDTH
+        path.style.polystyle.color = PATH_POLYSTYLE_COLOR
 
     # Add markers for stops
     for position in stop_positions:
