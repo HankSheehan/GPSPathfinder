@@ -21,7 +21,7 @@ PROJECTED_DISTANCE_THRESHOLD = 1 # mph
 
 
 
-def write_kml_file(positions, kml_file_path, sanatized_points=[]):
+def write_kml_file(positions, kml_file_path):
     """
     Takes in a list of GPS positions and write them to a kml file
     """
@@ -37,14 +37,6 @@ def write_kml_file(positions, kml_file_path, sanatized_points=[]):
     path.style.linestyle.width = LINESTYLE_WIDTH
     path.style.polystyle.color = POLYSTYLE_COLOR
 
-    # Add red pins for all sanatized points
-    for position in sanatized_points:
-        pnt = kml.newpoint(
-            name="Sanatized point",
-            coords=[get_coordinate_tuple(position)]
-        )
-        pnt.style.labelstyle.color = simplekml.Color.red
-
     with open(kml_file_path, 'w') as kml_fp:
         kml_fp.write(kml.kml())
 
@@ -59,6 +51,7 @@ def load_gps_file(gps_file_path):
             if re.match(VALID_GPS_LINE_REGEX, position):
                 try:
                     positions.append(pynmea2.parse(position, check=False))
+                    print(True)
                 except:
                     continue
 
@@ -71,24 +64,46 @@ def sanitize_data(positions):
     """
 
     print(f'{len(positions)} positions before sanitization')
-    bad_points = []
 
-    index = 0
+    # Remove positions before trip begins
+    positions = clean_trip_start(positions)
+
+    # Clean up data based on it's acceleration
+    index = 1
     while index < len(positions):
         current_position = positions[index]
         last_position = positions[index-1]
 
         if not acceleration_is_valid(current_position, last_position):
-            bad_points.append(current_position)
             positions.pop(index)
         else:
             index += 1
 
-        print_some_info(current_position, last_position)
+        # print_some_info(current_position, last_position)
 
+
+    # Remove positions after trip ends
+    positions = clean_trip_end(positions)
 
     print(f'{len(positions)} positions after sanitization')
-    return positions, bad_points
+    return positions
+
+
+def clean_trip_start(positions):
+    index = 0
+    while get_speed(positions[index]) < 1:
+        positions.pop(index)
+        index += 1
+    return positions
+
+
+def clean_trip_end(positions):
+    index = len(positions) - 1
+    while get_speed(positions[index]) < 1:
+        positions.pop(index)
+        index -= 1
+
+    return positions
 
 
 def acceleration_is_valid(current_position, last_position):
@@ -152,8 +167,8 @@ def get_args():
 def main():
     gps_file_path, kml_file_path = get_args()
     gps_data = load_gps_file(gps_file_path)
-    gps_data, sanatized_points = sanitize_data(gps_data)
-    write_kml_file(gps_data, kml_file_path, sanatized_points)
+    gps_data = sanitize_data(gps_data)
+    write_kml_file(gps_data, kml_file_path)
 
 
 if __name__ == '__main__':
