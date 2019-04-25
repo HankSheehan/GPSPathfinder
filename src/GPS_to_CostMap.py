@@ -1,12 +1,16 @@
+# Python Standard Libraries
 import argparse
 import simplekml
 
 import GPS_to_KML as gps_utils
 
-STOP_MERGE_THRESHOLD = .01 # miles
+# Third Party Libraries
+import pynmea2
+
+STOP_MERGE_THRESHOLD = .5 # miles
 TURN_MERGE_THRESHOLD = .01 # miles
 TURN_BEARING_DIFFERENCE_THRESHOLD = 15 # degrees
-MAX_SECONDS_FOR_A_TURN = 100 # seconds
+MARKER_MAX_SECONDS = 300 # seconds
 
 
 def agglomerate_markers(marker_positions, threshold):
@@ -40,9 +44,29 @@ def sanitize_markers(stop_positions, left_turn_positions, right_turn_positions, 
                 prune = True
                 break
         if not prune:
-            stop_positions.append(group[-1])
+            if (group[-1].datetime - group[0].datetime).total_seconds() > MARKER_MAX_SECONDS:
+                continue
+            stop_positions.append(group[0])
 
     return stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
+
+
+def get_metoid(positions):
+    """
+    Given a list of positions, get the metoid position.
+    """
+    centroid = lambda: None
+    centroid.latitude = sum([position.latitude for position in positions]) / len(positions)
+    centroid.longitude = sum([position.longitude for position in positions]) / len(positions)
+
+    metoid = positions[0]
+    best_distance = gps_utils.get_distance(positions[0], centroid)
+    for position in positions:
+        current_distance = gps_utils.get_distance(position, centroid)
+        if current_distance < best_distance:
+            metoid = position
+            best_distance = current_distance
+    return metoid
 
 
 def detect_stops(positions):
@@ -52,7 +76,7 @@ def detect_stops(positions):
     # Detect stops
     stop_positions = []
     for position in positions:
-        if gps_utils.get_speed(position) < 15:
+        if gps_utils.get_speed(position) < 20:
             stop_positions.append(position)
 
     return stop_positions
@@ -78,7 +102,7 @@ def detect_turn(positions):
     for slow_down in agglomerated_slow_downs:
         if len(slow_down) <= 4:
             continue
-        if (slow_down[-1].datetime - slow_down[0].datetime).total_seconds() > MAX_SECONDS_FOR_A_TURN:
+        if (slow_down[-1].datetime - slow_down[0].datetime).total_seconds() > MARKER_MAX_SECONDS:
             continue
 
         # Get the bearings and add them to the turns list if the bear changes enough
@@ -89,11 +113,11 @@ def detect_turn(positions):
         # TODO: handle U-turns (they sometimes freeak out)
         if abs(bearing_difference) > TURN_BEARING_DIFFERENCE_THRESHOLD:
             if abs(abs(bearing_difference)-180) < TURN_BEARING_DIFFERENCE_THRESHOLD:
-                u_turns.append(slow_down[len(slow_down)//2])
-            elif bearing_difference > 0:
-                left_turns.append(slow_down[len(slow_down)//2])
+                u_turns.append(get_metoid(slow_down))
+            elif bearing_difference < 0:
+                left_turns.append(get_metoid(slow_down))
             else:
-                right_turns.append(slow_down[len(slow_down)//2])
+                right_turns.append(get_metoid(slow_down))
 
     return left_turns, right_turns, u_turns
 
