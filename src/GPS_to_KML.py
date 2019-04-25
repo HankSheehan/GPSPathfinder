@@ -224,6 +224,13 @@ def get_bearing(position1, position2):
     return degrees(atan2(cos(lat1) * sin(lat2) - sin(lat1)  * cos(lat2) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2)))
 
 
+def get_bearing_difference(bearing1, bearing2):
+    """
+    Given two bearings, returns the angle between them
+    """
+    return abs((((bearing1 - bearing2) + 180) % 360) - 180)
+
+
 def get_args():
     """
     Initializes argparse and returns desired arguments
