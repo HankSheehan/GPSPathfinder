@@ -51,19 +51,19 @@ def write_kml_file( kml_file_path,
     # Add markers for stops
     for coordinate in stop_coordinates:
         stop_marker = kml.newpoint(name="stop", description="Detected stop.", coords=[coordinate])
-        stop_marker.style.labelstyle.color = STOP_LABELSTYLE_COLOR
+        stop_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         stop_marker.style.iconstyle.color = STOP_ICONSTYLE_COLOR
 
     # Add markers for left turns
     for coordinate in left_turn_coordinates:
         left_turn_marker = kml.newpoint(name="left turn", description="Detected left turn.", coords=[coordinate])
-        left_turn_marker.style.labelstyle.color = LEFT_TURN_LABELSTYLE_COLOR
+        left_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         left_turn_marker.style.iconstyle.color = LEFT_TURN_ICONSTYLE_COLOR
 
     # Add markers for right turns
     for coordinate in right_turn_coordinates:
         right_turn_marker = kml.newpoint(name="right turn", description="Detected right turn.", coords=[coordinate])
-        right_turn_marker.style.labelstyle.color = RIGHT_TURN_LABELSTYLE_COLOR
+        right_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         right_turn_marker.style.iconstyle.color = RIGHT_TURN_ICONSTYLE_COLOR
 
     with open(kml_file_path, 'w') as kml_fp:
