@@ -7,10 +7,6 @@ STOP_MERGE_THRESHOLD = .05 # miles
 TURN_MERGE_THRESHOLD = .01 # miles
 TURN_BEARING_DIFFERENCE_THRESHOLD = 15 # degrees
 
-STOP_MARKER_TYPE = 0
-LEFT_TURN_MARKER_TYPE = 1
-RIGHT_TURN_MARKER_TYPE = 2
-
 
 def agglomerate_markers(marker_positions, threshold):
     """
@@ -31,22 +27,22 @@ def agglomerate_markers(marker_positions, threshold):
     return agglomerated_markers
 
 
-def sanitize_markers(stop_positions, left_turn_positions, right_turn_positions):
-    # Add labels to the positions (to keep track of them)
-    for position in stop_positions:
-        position.marker_type = STOP_MARKER_TYPE
-    for position in left_turn_positions:
-        position.marker_type = LEFT_TURN_MARKER_TYPE
-    for position in right_turn_positions:
-        position.marker_type = RIGHT_TURN_MARKER_TYPE
+def sanitize_markers(stop_positions, left_turn_positions, right_turn_positions, u_turn_positions):
 
-    stop_positions = [group[-1] for group in agglomerate_markers(stop_positions, STOP_MERGE_THRESHOLD)]
+    agglomerated_stop_positions = agglomerate_markers(stop_positions, STOP_MERGE_THRESHOLD)
 
+    stop_positions = []
+    for group in agglomerated_stop_positions:
+        prune = False
+        for position in left_turn_positions + right_turn_positions + u_turn_positions:
+            if position in group:
+                prune = True
+                break
+        if not prune:
+            stop_positions.append(group[-1])
 
-    # TODO: Actually sanatize these markers
+    return stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
 
-
-    return stop_positions, left_turn_positions, right_turn_positions
 
 def detect_stops(positions):
     """
@@ -73,9 +69,10 @@ def detect_turn(positions):
             slow_downs.append(position)
 
     # Agglomerate slow down points that are close together
-    agglomerated_slow_downs = agglomerate_markers(slow_downs, TURN_MERGE_THRESHOLD)
     left_turns = []
     right_turns = []
+    u_turns = []
+    agglomerated_slow_downs = agglomerate_markers(slow_downs, TURN_MERGE_THRESHOLD)
     for slow_down in agglomerated_slow_downs:
 
         # Get the bearings and add them to the turns list if the bear changes enough
@@ -83,13 +80,16 @@ def detect_turn(positions):
         final_bearing = gps_utils.get_bearing(slow_down[-2], slow_down[-1])
         bearing_difference = gps_utils.get_bearing_difference(initial_bearing, final_bearing)
 
+        # TODO: handle U-turns (they sometimes freeak out)
         if abs(bearing_difference) > TURN_BEARING_DIFFERENCE_THRESHOLD:
-            if bearing_difference > 0:
+            if abs(abs(bearing_difference)-180) < TURN_BEARING_DIFFERENCE_THRESHOLD:
+                u_turns.append(slow_down[len(slow_down)//2])
+            elif bearing_difference > 0:
                 left_turns.append(slow_down[len(slow_down)//2])
             else:
                 right_turns.append(slow_down[len(slow_down)//2])
 
-    return left_turns, right_turns
+    return left_turns, right_turns, u_turns
 
 
 def gps_to_cost_map(gps_file_paths):
@@ -101,6 +101,7 @@ def gps_to_cost_map(gps_file_paths):
     stop_positions = []
     left_turn_positions = []
     right_turn_positions = []
+    u_turn_positions = []
 
     for file in gps_file_paths:
         # Load and sanatize data
@@ -109,17 +110,18 @@ def gps_to_cost_map(gps_file_paths):
 
         # Detect the stops and turns
         detected_stop = detect_stops(positions)
-        detected_left_turn, detected_right_turn = detect_turn(positions)
+        detected_left_turns, detected_right_turns, detected_u_turns = detect_turn(positions)
 
         # Sanatize the markers
-        detected_stop, detected_left_turn, detected_right_turn = sanitize_markers(detected_stop, detected_left_turn, detected_right_turn)
+        detected_stop, detected_left_turns, detected_right_turns, detected_u_turns = sanitize_markers(detected_stop, detected_left_turns, detected_right_turns, detected_u_turns)
 
         stop_positions += detected_stop
-        left_turn_positions += detected_left_turn
-        right_turn_positions += detected_right_turn
+        left_turn_positions += detected_left_turns
+        right_turn_positions += detected_right_turns
+        u_turn_positions += detected_u_turns
         total_positions += positions
 
-    return positions, stop_positions, left_turn_positions, right_turn_positions
+    return positions, stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
 
 
 def main():
@@ -130,9 +132,9 @@ def main():
     gps_file_paths = args.gps_file_paths
     kml_file_path = args.kml_file_path
 
-    positions, stops, left_turns, right_turns = gps_to_cost_map(gps_file_paths)
+    positions, stops, left_turns, right_turns, u_turns = gps_to_cost_map(gps_file_paths)
 
-    gps_utils.write_kml_file(kml_file_path, positions, stops, left_turns, right_turns)
+    gps_utils.write_kml_file(kml_file_path, positions, stops, left_turns, right_turns, u_turns)
 
 
 if __name__ == '__main__':

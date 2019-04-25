@@ -17,6 +17,7 @@ POINT_LABELSTYLE_COLOR = simplekml.Color.white
 STOP_ICONSTYLE_COLOR = simplekml.Color.yellow
 LEFT_TURN_ICONSTYLE_COLOR = simplekml.Color.red
 RIGHT_TURN_ICONSTYLE_COLOR = simplekml.Color.green
+U_TURN_ICONSTYLE_COLOR = simplekml.Color.purple
 
 VALID_GPS_LINE_REGEX = '^\$GPRMC,\d+\.\d+,A,\d+.\d+,N,\d+.\d+,W,\d+.\d+,\d+.\d+,\d+(,[^,\n]*){3}$'
 
@@ -31,7 +32,8 @@ def write_kml_file( kml_file_path,
                     positions,
                     stop_positions=[],
                     left_turn_positions=[],
-                    right_turn_positions=[]
+                    right_turn_positions=[],
+                    u_turn_positions=[],
                     ):
     """
     Takes in a list of GPS positions and write them to a kml file
@@ -70,6 +72,12 @@ def write_kml_file( kml_file_path,
         right_turn_marker = kml.newpoint(name="right turn", description="Detected right turn.", coords=[get_coordinate_tuple(position)])
         right_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         right_turn_marker.style.iconstyle.color = RIGHT_TURN_ICONSTYLE_COLOR
+
+    # Add markers for right turns
+    for position in u_turn_positions:
+        u_turn_marker = kml.newpoint(name="u turn", description="Detected u turn.", coords=[get_coordinate_tuple(position)])
+        u_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
+        u_turn_marker.style.iconstyle.color = U_TURN_ICONSTYLE_COLOR
 
     with open(kml_file_path, 'w') as kml_fp:
         kml_fp.write(kml.kml())
