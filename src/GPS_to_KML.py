@@ -28,9 +28,9 @@ PROJECTED_DISTANCE_THRESHOLD = 1 # mph
 
 def write_kml_file( kml_file_path,
                     positions,
-                    stop_coordinates=[],
-                    left_turn_coordinates=[],
-                    right_turn_coordinates=[]
+                    stop_positions=[],
+                    left_turn_positions=[],
+                    right_turn_positions=[]
                     ):
     """
     Takes in a list of GPS positions and write them to a kml file
@@ -51,20 +51,20 @@ def write_kml_file( kml_file_path,
     path.style.polystyle.color = PATH_POLYSTYLE_COLOR
 
     # Add markers for stops
-    for coordinate in stop_coordinates:
-        stop_marker = kml.newpoint(name="stop", description="Detected stop.", coords=[coordinate])
+    for position in stop_positions:
+        stop_marker = kml.newpoint(name="stop", description="Detected stop.", coords=[get_coordinate_tuple(position)])
         stop_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         stop_marker.style.iconstyle.color = STOP_ICONSTYLE_COLOR
 
     # Add markers for left turns
-    for coordinate in left_turn_coordinates:
-        left_turn_marker = kml.newpoint(name="left turn", description="Detected left turn.", coords=[coordinate])
+    for position in left_turn_positions:
+        left_turn_marker = kml.newpoint(name="left turn", description="Detected left turn.", coords=[get_coordinate_tuple(position)])
         left_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         left_turn_marker.style.iconstyle.color = LEFT_TURN_ICONSTYLE_COLOR
 
     # Add markers for right turns
-    for coordinate in right_turn_coordinates:
-        right_turn_marker = kml.newpoint(name="right turn", description="Detected right turn.", coords=[coordinate])
+    for position in right_turn_positions:
+        right_turn_marker = kml.newpoint(name="right turn", description="Detected right turn.", coords=[get_coordinate_tuple(position)])
         right_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
         right_turn_marker.style.iconstyle.color = RIGHT_TURN_ICONSTYLE_COLOR
 
