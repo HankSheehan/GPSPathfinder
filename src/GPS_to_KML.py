@@ -42,12 +42,13 @@ def write_kml_file( kml_file_path,
     path.style.linestyle.width = LINESTYLE_WIDTH
     path.style.polystyle.color = POLYSTYLE_COLOR
 
-    if stop_coordinates:
-        stop_markers = kml.newpoint(name="stops", description="Detected stop signs.", coords=[stop_coordinates])
+    for coordinate in stop_coordinates:
+        stop_marker = kml.newpoint(name="stops", description="Detected stop signs.", coords=[coordinate])
 
-        stop_markers.style.linestyle.color = LINESTYLE_COLOR
-        stop_markers.style.linestyle.width = LINESTYLE_WIDTH
-        stop_markers.style.polystyle.color = POLYSTYLE_COLOR
+        stop_marker.style.linestyle.color = LINESTYLE_COLOR
+        stop_marker.style.linestyle.width = LINESTYLE_WIDTH
+        stop_marker.style.polystyle.color = POLYSTYLE_COLOR
+
 
     with open(kml_file_path, 'w') as kml_fp:
         kml_fp.write(kml.kml())
@@ -107,7 +108,7 @@ def clean_trip_start(positions):
 
 
 def clean_trip_end(positions):
-    while positions and get_speed(len(positions)-1) < 1:
+    while positions and get_speed(positions[len(positions)-1]) < 1:
         positions.pop(len(positions)-1)
     return positions
 
