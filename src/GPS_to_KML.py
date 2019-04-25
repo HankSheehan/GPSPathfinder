@@ -39,9 +39,11 @@ def write_kml_file( kml_file_path,
 
     # Add a line for the path taken
     path = kml.newlinestring(
-        name="Example",
-        description="Path for 2019_03_19",
-        coords=[get_coordinate_tuple(position) for position in positions]
+        name="Path",
+        description="Path",
+        altitudemode="relativeToGround",
+        extrude=1,
+        coords=[get_coordinate_and_speed_tuple(position) for position in positions]
     )
 
     path.style.linestyle.color = PATH_LINESTYLE_COLOR
@@ -188,6 +190,17 @@ def get_coordinate_tuple(position, lat_first=False):
         return (position.latitude, position.longitude)
     else:
         return (position.longitude, position.latitude)
+
+
+def get_coordinate_and_speed_tuple(position, lat_first=False):
+    """
+    Returns the longitude and latitude of this position as a tuple.
+    If lat_first is True, the order will be reversed.
+    """
+    if lat_first:
+        return (position.latitude, position.longitude, get_speed(position))
+    else:
+        return (position.longitude, position.latitude, get_speed(position))
 
 
 def get_distance(position1, position2):
