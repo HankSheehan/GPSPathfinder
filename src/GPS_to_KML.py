@@ -51,7 +51,6 @@ def load_gps_file(gps_file_path):
             if re.match(VALID_GPS_LINE_REGEX, position):
                 try:
                     positions.append(pynmea2.parse(position, check=False))
-                    print(True)
                 except:
                     continue
 
