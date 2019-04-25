@@ -42,6 +42,10 @@ def write_kml_file( kml_file_path,
 
     for positions in paths:
 
+        # Skip any fully pruned paths
+        if not positions:
+            continue
+
         # Add a line for the path taken
         path = kml.newlinestring(
             name="Path",
