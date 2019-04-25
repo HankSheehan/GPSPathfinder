@@ -8,9 +8,14 @@ import pynmea2
 import simplekml
 from haversine import haversine
 
-LINESTYLE_COLOR = 'Af00ffff'
-LINESTYLE_WIDTH = 6
-POLYSTYLE_COLOR = '7f00ff00'
+PATH_LINESTYLE_COLOR = 'Af00ffff'
+PATH_LINESTYLE_WIDTH = 6
+PATH_POLYSTYLE_COLOR = '7f00ff00'
+
+POINT_LABELSTYLE_COLOR = simplekml.Color.white
+STOP_ICONSTYLE_COLOR = simplekml.Color.yellow
+LEFT_TURN_ICONSTYLE_COLOR = simplekml.Color.red
+RIGHT_TURN_ICONSTYLE_COLOR = simplekml.Color.green
 
 VALID_GPS_LINE_REGEX = '^\$GPRMC,\d+\.\d+,A,\d+.\d+,N,\d+.\d+,W,\d+.\d+,\d+.\d+,\d+(,[^,\n]*){3}$'
 
@@ -32,23 +37,34 @@ def write_kml_file( kml_file_path,
     """
     kml = simplekml.Kml()
 
+    # Add a line for the path taken
     path = kml.newlinestring(
         name="Example",
         description="Path for 2019_03_19",
         coords=[get_coordinate_tuple(position) for position in positions]
     )
 
-    path.style.linestyle.color = LINESTYLE_COLOR
-    path.style.linestyle.width = LINESTYLE_WIDTH
-    path.style.polystyle.color = POLYSTYLE_COLOR
+    path.style.linestyle.color = PATH_LINESTYLE_COLOR
+    path.style.linestyle.width = PATH_LINESTYLE_WIDTH
+    path.style.polystyle.color = PATH_POLYSTYLE_COLOR
 
+    # Add markers for stops
     for coordinate in stop_coordinates:
-        stop_marker = kml.newpoint(name="stops", description="Detected stop signs.", coords=[coordinate])
+        stop_marker = kml.newpoint(name="stop", description="Detected stop.", coords=[coordinate])
+        stop_marker.style.labelstyle.color = STOP_LABELSTYLE_COLOR
+        stop_marker.style.iconstyle.color = STOP_ICONSTYLE_COLOR
 
-        stop_marker.style.linestyle.color = LINESTYLE_COLOR
-        stop_marker.style.linestyle.width = LINESTYLE_WIDTH
-        stop_marker.style.polystyle.color = POLYSTYLE_COLOR
+    # Add markers for left turns
+    for coordinate in left_turn_coordinates:
+        left_turn_marker = kml.newpoint(name="left turn", description="Detected left turn.", coords=[coordinate])
+        left_turn_marker.style.labelstyle.color = LEFT_TURN_LABELSTYLE_COLOR
+        left_turn_marker.style.iconstyle.color = LEFT_TURN_ICONSTYLE_COLOR
 
+    # Add markers for right turns
+    for coordinate in right_turn_coordinates:
+        right_turn_marker = kml.newpoint(name="right turn", description="Detected right turn.", coords=[coordinate])
+        right_turn_marker.style.labelstyle.color = RIGHT_TURN_LABELSTYLE_COLOR
+        right_turn_marker.style.iconstyle.color = RIGHT_TURN_ICONSTYLE_COLOR
 
     with open(kml_file_path, 'w') as kml_fp:
         kml_fp.write(kml.kml())
