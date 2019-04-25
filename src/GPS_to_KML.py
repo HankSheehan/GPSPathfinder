@@ -221,7 +221,7 @@ def get_bearing(position1, position2):
     lon1 = position1.longitude
     lat2 = position2.latitude
     lon2 = position2.longitude
-    return atan2(cos(lat1) * sin(lat2) - sin(lat1)  * cos(lat2) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2))
+    return degrees(atan2(cos(lat1) * sin(lat2) - sin(lat1)  * cos(lat2) * cos(lon2 - lon1), sin(lon2 - lon1) * cos(lat2)))
 
 
 def get_args():
