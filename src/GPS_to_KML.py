@@ -228,7 +228,7 @@ def get_bearing_difference(bearing1, bearing2):
     """
     Given two bearings, returns the angle between them
     """
-    return abs((((bearing1 - bearing2) + 180) % 360) - 180)
+    return (((bearing1 - bearing2) + 180) % 360) - 180
 
 
 def get_args():
