@@ -21,7 +21,12 @@ PROJECTED_DISTANCE_THRESHOLD = 1 # mph
 
 
 
-def write_kml_file(positions, kml_file_path):
+def write_kml_file( kml_file_path,
+                    positions,
+                    stop_coordinates=[],
+                    left_turn_coordinates=[],
+                    right_turn_coordinates=[]
+                    ):
     """
     Takes in a list of GPS positions and write them to a kml file
     """
@@ -36,6 +41,13 @@ def write_kml_file(positions, kml_file_path):
     path.style.linestyle.color = LINESTYLE_COLOR
     path.style.linestyle.width = LINESTYLE_WIDTH
     path.style.polystyle.color = POLYSTYLE_COLOR
+
+    if stop_coordinates:
+        stop_markers = kml.newpoint(name="stops", description="Detected stop signs.", coords=[stop_coordinates])
+
+        stop_markers.style.linestyle.color = LINESTYLE_COLOR
+        stop_markers.style.linestyle.width = LINESTYLE_WIDTH
+        stop_markers.style.polystyle.color = POLYSTYLE_COLOR
 
     with open(kml_file_path, 'w') as kml_fp:
         kml_fp.write(kml.kml())
@@ -89,18 +101,14 @@ def sanitize_data(positions):
 
 
 def clean_trip_start(positions):
-    index = 0
-    while get_speed(positions[index]) < 1:
-        positions.pop(index)
-        index += 1
+    while positions and get_speed(positions[0]) < 1:
+        positions.pop(0)
     return positions
 
 
 def clean_trip_end(positions):
-    index = len(positions) - 1
-    while get_speed(positions[index]) < 1:
-        positions.pop(index)
-        index -= 1
+    while positions and get_speed(len(positions)-1) < 1:
+        positions.pop(len(positions)-1)
     return positions
 
 
@@ -187,7 +195,7 @@ def main():
     gps_file_path, kml_file_path = get_args()
     gps_data = load_gps_file(gps_file_path)
     gps_data = sanitize_data(gps_data)
-    write_kml_file(gps_data, kml_file_path)
+    write_kml_file(kml_file_path, gps_data)
 
 
 if __name__ == '__main__':
