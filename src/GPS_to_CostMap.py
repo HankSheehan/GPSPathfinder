@@ -3,7 +3,7 @@ import simplekml
 
 import GPS_to_KML as gps_utils
 
-STOP_MERGE_THRESHOLD = .05 # miles
+STOP_MERGE_THRESHOLD = .01 # miles
 TURN_MERGE_THRESHOLD = .01 # miles
 TURN_BEARING_DIFFERENCE_THRESHOLD = 15 # degrees
 
@@ -73,7 +73,7 @@ def detect_turn(positions):
     right_turns = []
     u_turns = []
     agglomerated_slow_downs = agglomerate_markers(slow_downs, TURN_MERGE_THRESHOLD)
-    for slow_down in agglomerated_slow_downs:
+    for slow_down in filter(lambda group: len(group) > 4, agglomerated_slow_downs):
 
         # Get the bearings and add them to the turns list if the bear changes enough
         initial_bearing = gps_utils.get_bearing(slow_down[0], slow_down[1])
@@ -119,9 +119,9 @@ def gps_to_cost_map(gps_file_paths):
         left_turn_positions += detected_left_turns
         right_turn_positions += detected_right_turns
         u_turn_positions += detected_u_turns
-        total_positions += positions
+        total_positions.append(positions)
 
-    return positions, stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
+    return total_positions, stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
 
 
 def main():

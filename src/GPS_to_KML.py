@@ -29,7 +29,7 @@ PROJECTED_DISTANCE_THRESHOLD = 1 # mph
 
 
 def write_kml_file( kml_file_path,
-                    positions,
+                    paths,
                     stop_positions=[],
                     left_turn_positions=[],
                     right_turn_positions=[],
@@ -40,7 +40,7 @@ def write_kml_file( kml_file_path,
     """
     kml = simplekml.Kml()
 
-    if positions:
+    for positions in paths:
 
         # Add a line for the path taken
         path = kml.newlinestring(
@@ -254,7 +254,7 @@ def main():
     gps_file_path, kml_file_path = get_args()
     gps_data = load_gps_file(gps_file_path)
     gps_data = sanitize_data(gps_data)
-    write_kml_file(kml_file_path, gps_data)
+    write_kml_file(kml_file_path, [gps_data])
 
 
 if __name__ == '__main__':
