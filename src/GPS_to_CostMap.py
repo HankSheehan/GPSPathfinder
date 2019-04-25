@@ -32,7 +32,10 @@ def agglomerate_markers(marker_positions, threshold):
     return agglomerated_markers
 
 
-def sanitize_markers(stop_positions, left_turn_positions, right_turn_positions, u_turn_positions):
+def condense_stop_markers(stop_positions, left_turn_positions, right_turn_positions, u_turn_positions):
+    """
+    Condenses stop markers to a single marker per stop. Removes stop markers that overlap with turn markers.
+    """
 
     agglomerated_stop_positions = agglomerate_markers(stop_positions, STOP_MERGE_THRESHOLD)
 
@@ -48,7 +51,7 @@ def sanitize_markers(stop_positions, left_turn_positions, right_turn_positions, 
                 continue
             stop_positions.append(group[0])
 
-    return stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
+    return stop_positions
 
 
 def get_metoid(positions):
@@ -140,8 +143,8 @@ def gps_to_cost_map(gps_file_paths):
         detected_stop = detect_stops(positions)
         detected_left_turns, detected_right_turns, detected_u_turns = detect_turn(positions)
 
-        # Sanatize the markers
-        detected_stop, detected_left_turns, detected_right_turns, detected_u_turns = sanitize_markers(detected_stop, detected_left_turns, detected_right_turns, detected_u_turns)
+        # Condense the stop markers to a single representation per stop
+        detected_stop = condense_stop_markers(detected_stop, detected_left_turns, detected_right_turns, detected_u_turns)
 
         stop_positions += detected_stop
         left_turn_positions += detected_left_turns
