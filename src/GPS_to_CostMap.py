@@ -6,6 +6,7 @@ import GPS_to_KML as gps_utils
 STOP_MERGE_THRESHOLD = .01 # miles
 TURN_MERGE_THRESHOLD = .01 # miles
 TURN_BEARING_DIFFERENCE_THRESHOLD = 15 # degrees
+MAX_SECONDS_FOR_A_TURN = 100 # seconds
 
 
 def agglomerate_markers(marker_positions, threshold):
@@ -73,7 +74,12 @@ def detect_turn(positions):
     right_turns = []
     u_turns = []
     agglomerated_slow_downs = agglomerate_markers(slow_downs, TURN_MERGE_THRESHOLD)
-    for slow_down in filter(lambda group: len(group) > 4, agglomerated_slow_downs):
+
+    for slow_down in agglomerated_slow_downs:
+        if len(slow_down) <= 4:
+            continue
+        if (slow_down[-1].datetime - slow_down[0].datetime).total_seconds() > MAX_SECONDS_FOR_A_TURN:
+            continue
 
         # Get the bearings and add them to the turns list if the bear changes enough
         initial_bearing = gps_utils.get_bearing(slow_down[0], slow_down[1])
