@@ -13,7 +13,6 @@ PATH_LINESTYLE_COLOR = 'Af00ffff'
 PATH_LINESTYLE_WIDTH = 6
 PATH_POLYSTYLE_COLOR = '7f00ff00'
 
-POINT_LABELSTYLE_COLOR = simplekml.Color.white
 STOP_ICONSTYLE_COLOR = simplekml.Color.yellow
 LEFT_TURN_ICONSTYLE_COLOR = simplekml.Color.red
 RIGHT_TURN_ICONSTYLE_COLOR = simplekml.Color.green
@@ -61,26 +60,22 @@ def write_kml_file( kml_file_path,
 
     # Add markers for stops
     for position in stop_positions:
-        stop_marker = kml.newpoint(name="stop", description="Detected stop.", coords=[get_coordinate_tuple(position)])
-        stop_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
+        stop_marker = kml.newpoint(name="", description="Detected stop.", coords=[get_coordinate_tuple(position)])
         stop_marker.style.iconstyle.color = STOP_ICONSTYLE_COLOR
 
     # Add markers for left turns
     for position in left_turn_positions:
-        left_turn_marker = kml.newpoint(name="left turn", description="Detected left turn.", coords=[get_coordinate_tuple(position)])
-        left_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
+        left_turn_marker = kml.newpoint(name="", description="Detected left turn.", coords=[get_coordinate_tuple(position)])
         left_turn_marker.style.iconstyle.color = LEFT_TURN_ICONSTYLE_COLOR
 
     # Add markers for right turns
     for position in right_turn_positions:
-        right_turn_marker = kml.newpoint(name="right turn", description="Detected right turn.", coords=[get_coordinate_tuple(position)])
-        right_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
+        right_turn_marker = kml.newpoint(name="", description="Detected right turn.", coords=[get_coordinate_tuple(position)])
         right_turn_marker.style.iconstyle.color = RIGHT_TURN_ICONSTYLE_COLOR
 
-    # Add markers for right turns
+    # Add markers for u turns
     for position in u_turn_positions:
-        u_turn_marker = kml.newpoint(name="u turn", description="Detected u turn.", coords=[get_coordinate_tuple(position)])
-        u_turn_marker.style.labelstyle.color = POINT_LABELSTYLE_COLOR
+        u_turn_marker = kml.newpoint(name="", description="Detected u turn.", coords=[get_coordinate_tuple(position)])
         u_turn_marker.style.iconstyle.color = U_TURN_ICONSTYLE_COLOR
 
     with open(kml_file_path, 'w') as kml_fp:
