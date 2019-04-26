@@ -11,6 +11,12 @@ STOP_MERGE_THRESHOLD = .05 # miles
 TURN_MERGE_THRESHOLD = .01 # miles
 TURN_BEARING_DIFFERENCE_THRESHOLD = 20 # degrees
 MARKER_MAX_SECONDS = 300 # seconds
+AGGLOMERATION_THRESHOLD = .05 # miles
+
+STOP_MARKER_TYPE = 0
+LEFT_TURN_MARKER_TYPE = 1
+RIGHT_TURN_MARKER_TYPE = 2
+U_TURN_MARKER_TYPE = 3
 
 
 def agglomerate_markers(marker_positions, threshold):
@@ -30,6 +36,79 @@ def agglomerate_markers(marker_positions, threshold):
             current_agglomeration = []
 
     return agglomerated_markers
+
+
+def sanatize_markers(stop_positions, left_turn_positions, right_turn_positions, u_turn_positions):
+    """
+    Sanatizes markers that are found across many paths.
+    """
+    # Track the marker type for each position
+    for position in stop_positions:
+        position.marker_type = STOP_MARKER_TYPE
+    for position in left_turn_positions:
+        position.marker_type = LEFT_TURN_MARKER_TYPE
+    for position in right_turn_positions:
+        position.marker_type = RIGHT_TURN_MARKER_TYPE
+    for position in u_turn_positions:
+        position.marker_type = U_TURN_MARKER_TYPE
+
+    all_markers = stop_positions + left_turn_positions + right_turn_positions + u_turn_positions
+
+    markers_to_ignore = []
+
+    # Ignore markers that are a stop marker that is too close to another marker,
+    #   or that are turn markers too close to the same type of turn marker.
+    for index, marker1 in enumerate(all_markers):
+
+        if marker1 in markers_to_ignore:
+            continue
+
+        for marker2 in all_markers[index+1:]:
+            # If they are far apart
+            if gps_utils.get_distance(marker1, marker2) > AGGLOMERATION_THRESHOLD:
+                continue
+            if marker2 in markers_to_ignore:
+                continue
+
+            # If the marker1 is a STOP marker
+            if marker1.marker_type == STOP_MARKER_TYPE:
+                # If marker2 is a STOP marker
+                if marker2.marker_type == STOP_MARKER_TYPE:
+                    markers_to_ignore.append(marker2)
+                    continue
+                # If marker2 is a TURN marker
+                else:
+                    markers_to_ignore.append(marker1)
+                    break
+
+            # If the marker1 is a TURN marker
+            else:
+                # If marker2 is a STOP marker
+                if marker2.marker_type == STOP_MARKER_TYPE:
+                    markers_to_ignore.append(marker2)
+                    continue
+                # If marker2 is the same marker type
+                elif marker1.marker_type == marker2.marker_type:
+                    markers_to_ignore.append(marker2)
+                    continue
+
+    # Separate the positions back out
+    stop_positions, left_turn_positions, right_turn_positions, u_turn_positions = [], [], [], []
+    for position in filter(lambda marker: not marker in markers_to_ignore, all_markers):
+        if position.marker_type == STOP_MARKER_TYPE:
+            stop_positions.append(position)
+
+        elif position.marker_type == LEFT_TURN_MARKER_TYPE:
+            left_turn_positions.append(position)
+
+        elif position.marker_type == RIGHT_TURN_MARKER_TYPE:
+            right_turn_positions.append(position)
+
+        elif position.marker_type == U_TURN_MARKER_TYPE:
+            u_turn_positions.append(position)
+
+
+    return stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
 
 
 def condense_stop_markers(stop_positions, left_turn_positions, right_turn_positions, u_turn_positions):
@@ -151,6 +230,8 @@ def gps_to_cost_map(gps_file_paths):
         right_turn_positions += detected_right_turns
         u_turn_positions += detected_u_turns
         total_positions.append(positions)
+
+    stop_positions, left_turn_positions, right_turn_positions, u_turn_positions = sanatize_markers(stop_positions, left_turn_positions, right_turn_positions, u_turn_positions)
 
     return total_positions, stop_positions, left_turn_positions, right_turn_positions, u_turn_positions
 
